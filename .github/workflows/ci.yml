@@ -10,7 +10,7 @@ jobs:
   build-test-analyze:
     name: Build, test and analyze
     if: "!contains(github.event.head_commit.message, '[skip test]')"
-    uses: lowlighter/metrics/.github/workflows/test.yml@master
+    uses: ./.github/workflows/test.yml
 
   # Format code
   format:
@@ -29,7 +29,7 @@ jobs:
         run: |
           npm install -g dprint
           mkdir -v -p /home/runner/.cache/dprint/cache
-          npx dprint fmt --config .github/config/dprint.json
+          npx dprint fmt --config .github/config/dprint.json --allow-no-files "**/*.{js,mjs}" "!**/node_modules/**" "!.github/scripts/quickstart/**"
       - name: Publish formatted code
         run: |
           set +e
