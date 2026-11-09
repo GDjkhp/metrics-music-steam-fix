@@ -27,7 +27,12 @@ RUN chmod +x /metrics/source/app/action/index.mjs \
   # Clean apt/lists
   && rm -rf /var/lib/apt/lists/* \
   # Install node modules and rebuild indexes
-  && npm ci \
+  # Install scripts are skipped on the first pass because libxmljs2 (optional, only used by the opt-in "verify" option)
+  # has no prebuilt binary for Node 20 and compiles its bundled libxml2 from source (~5 min).
+  # Only the install scripts that are actually needed are run afterwards.
+  && npm ci --ignore-scripts \
+  && npm rebuild canvas sharp \
+  && npm run postinstall \
   && npm run build
 
 # Environment variables
