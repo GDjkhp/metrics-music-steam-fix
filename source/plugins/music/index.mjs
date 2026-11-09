@@ -126,14 +126,18 @@ export default async function({login, imports, data, q, account}, {enabled = fal
             //Parse tracklist
             await frame.waitForSelector("ol")
             tracks = [
-              ...await frame.evaluate(() =>
-                [...document.querySelectorAll("ol li")].map(tr => ({
+              ...await frame.evaluate(() => {
+                //Spotify doesn't provide artworks so we fallback on playlist artwork instead (guard against selector no longer matching)
+                const cover = document.querySelector("div[style*='--image-src']") ?? document.querySelector("img[src*='scdn.co']")
+                const artwork = cover
+                  ? (cover.tagName === "IMG" ? cover.src : window.getComputedStyle(cover).backgroundImage.match(/url\("?(?<url>https:[^")]+)"?\)/)?.groups?.url ?? null)
+                  : null
+                return [...document.querySelectorAll("ol li")].map(tr => ({
                   name: tr.querySelector("h3").innerText,
                   artist: tr.querySelector("h4").innerText,
-                  //Spotify doesn't provide artworks so we fallback on playlist artwork instead
-                  artwork: window.getComputedStyle(document.querySelector("div[style^='--image-src:']") ?? null)?.backgroundImage.match(/^url\("(?<url>https:...+)"\)$/)?.groups?.url ?? null,
+                  artwork,
                 }))
-              ),
+              }),
             ]
             break
           }
@@ -146,8 +150,8 @@ export default async function({login, imports, data, q, account}, {enabled = fal
               ...await frame.evaluate(() =>
                 [...document.querySelectorAll("ytmusic-playlist-shelf-renderer ytmusic-responsive-list-item-renderer")].map(item => ({
                   name: item.querySelector("yt-formatted-string.title > a")?.innerText ?? "",
-                  artist: item.querySelector(".secondary-flex-columns > yt-formatted-string > a")?.innerText ?? "",
-                  artwork: item.querySelector("img").src,
+                  artist: (item.querySelector(".secondary-flex-columns .flex-column yt-formatted-string")?.innerText || item.querySelector(".secondary-flex-columns .flex-column yt-formatted-string")?.title) ?? "",
+                  artwork: /^https?:/.test(item.querySelector("img")?.src ?? "") ? item.querySelector("img").src : null,
                 }))
               ),
             ]

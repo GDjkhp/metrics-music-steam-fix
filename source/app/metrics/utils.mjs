@@ -439,6 +439,9 @@ export async function imgb64(image, {width, height, fallback = true} = {}) {
   //Ignore already encoded-base 64
   if ((typeof image === "string") && (image.startsWith("data:image/png;base64")))
     return image
+  //Other data uris (e.g. lazy-load placeholders) cannot be loaded by sharp as a path
+  if ((typeof image === "string") && (image.startsWith("data:")))
+    return imgb64(null, {fallback})
   //Undefined image
   if (!image)
     return fallback ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mOcOnfpfwAGfgLYttYINwAAAABJRU5ErkJggg==" : null
@@ -449,7 +452,11 @@ export async function imgb64(image, {width, height, fallback = true} = {}) {
   let ext = "png"
   try {
     if (image.startsWith("http://") || image.startsWith("https://")) {
-      const buffer = Buffer.from(await fetch(image).then(response => response.arrayBuffer()))
+      const response = await fetch(image)
+      //Error pages (e.g. 404 xml/html) are not images and would make sharp throw "unsupported image format"
+      if (!response.ok)
+        throw new Error(`Could not load image (${response.status}) ${image}`)
+      const buffer = Buffer.from(await response.arrayBuffer())
       ext = (await fileTypeFromBuffer(buffer))?.ext ?? ext
       image = sharp(buffer)
     }
@@ -464,7 +471,13 @@ export async function imgb64(image, {width, height, fallback = true} = {}) {
   //Resize image
   if ((width) && (height))
     image = image.resize({width: width > 0 ? width : null, height: height > 0 ? height : null})
-  return `data:image/${ext};base64,${(await image.toBuffer()).toString("base64")}`
+  try {
+    return `data:image/${ext};base64,${(await image.toBuffer()).toString("base64")}`
+  }
+  catch (error) {
+    console.debug(`metrics/imgb64 > error > ${error}${fallback ? " (using fallback image instead)" : ""}`)
+    return imgb64(null, {fallback})
+  }
 }
 
 /**SVG utils */

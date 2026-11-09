@@ -35,7 +35,7 @@ export default async function({login, q, imports, data, account}, {token, enable
         continue
       result.games[section] = await Promise.all(
         games
-          .map(({appid: id, name, img_icon_url: icon, playtime_forever: playtime, rtime_last_played: played}) => ({id, name, icon: `http://media.steampowered.com/steamcommunity/public/images/apps/${id}/${icon}.jpg`, playtime: playtime / 60, played}))
+          .map(({appid: id, name, img_icon_url: icon, playtime_forever: playtime, rtime_last_played: played}) => ({id, name, icon: icon ? `http://media.steampowered.com/steamcommunity/public/images/apps/${id}/${icon}.jpg` : null, playtime: playtime / 60, played}))
           .filter(({playtime}) => (playtime >= _playtime_threshold))
           .filter(({id}) => (!_games_ignored.includes(`${id}`)))
           .sort((a, b) => ({"most-played": (b.playtime - a.playtime), "recently-played": (b.played - a.played)}[section]))
