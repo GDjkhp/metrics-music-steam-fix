@@ -19,8 +19,9 @@ RUN chmod +x /metrics/source/app/action/index.mjs \
   && apt-get install -y curl unzip \
   && curl -fsSL https://deno.land/x/install/install.sh | DENO_INSTALL=/usr/local sh \
   # Install ruby to support github licensed gem
-  && apt-get install -y ruby-full git g++ cmake pkg-config libssl-dev \
-  && gem install licensed \
+  # xz-utils (xzcat), zlib1g-dev and liblzma-dev are needed when nokogiri (a licensed dependency) compiles its bundled libxml2 from source
+  && apt-get install -y ruby-full git g++ cmake make patch pkg-config libssl-dev xz-utils zlib1g-dev liblzma-dev \
+  && gem install licensed --no-document \
   # Install python for node-gyp
   && apt-get install -y python3 \
   # Clean apt/lists
