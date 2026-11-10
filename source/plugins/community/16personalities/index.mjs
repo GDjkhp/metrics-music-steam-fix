@@ -19,6 +19,15 @@ export default async function({login, q, imports, data, account}, {enabled = fal
     console.debug(`metrics/compute/${login}/plugins > 16personalities > loading ${url}`)
     await page.goto(url, {waitUntil: imports.puppeteer.events})
 
+    //Profile is now rendered client-side (page initially shows "Loading..."), wait for content before scraping
+    try {
+      await page.waitForSelector(".card__bg", {timeout: 30000})
+      await page.waitForSelector(".type__code", {timeout: 5000})
+    }
+    catch {
+      throw {error: {message: "Failed to load profile content (page structure may have changed or profile is not public)"}}
+    }
+
     //Fetch raw data
     const raw = await page.evaluate(() => ({
       color: getComputedStyle(document.querySelector(".card__bg")).backgroundColor, //eslint-disable-line no-undef
