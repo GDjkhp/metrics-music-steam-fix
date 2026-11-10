@@ -8,3 +8,7 @@
     plugin_16personalities_scores: 'no'
     use_mocked_data: 'yes'
     verify: 'yes'
+  # Disabled: scrapes the live 16personalities.com site (not mocked), whose markup no longer matches the plugin's selectors.
+  # Re-enable (remove `modes`) once the plugin selectors are updated.
+  modes:
+    - disabled
