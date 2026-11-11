@@ -1578,11 +1578,7 @@ runs:
         # Forked action
         else
           echo "Using a forked version"
-          METRICS_IMAGE=ghcr.io/gdjkhp/metrics-music-steam-fix:latest
-          if ! docker image pull $METRICS_IMAGE; then
-            echo "Failed to pull prebuilt image, will rebuild it locally"
-            METRICS_IMAGE=metrics:forked-$METRICS_VERSION
-          fi
+          METRICS_IMAGE=metrics:forked-$METRICS_VERSION
         fi
         echo "Image name: $METRICS_IMAGE"
 
