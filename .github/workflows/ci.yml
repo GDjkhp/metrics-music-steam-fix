@@ -90,7 +90,12 @@ jobs:
       - name: Pull
         run: git pull
       - name: Checkout main
-        run: git checkout main
+        run: |
+          if git show-ref --verify --quiet refs/remotes/origin/main; then
+            git checkout main
+          else
+            git checkout -b main master
+          fi
       - name: Rebase main on master
         run: git merge master
       - name: Push main
@@ -225,7 +230,12 @@ jobs:
       - name: Pull
         run: git pull
       - name: Checkout latest
-        run: git checkout latest
+        run: |
+          if git show-ref --verify --quiet refs/remotes/origin/latest; then
+            git checkout latest
+          else
+            git checkout -b latest master
+          fi
       - name: Rebase latest on master
         run: git merge master
       - name: Push latest
