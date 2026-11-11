@@ -10,6 +10,11 @@ jobs:
   build-test-analyze:
     name: Build, test and analyze
     if: "!contains(github.event.head_commit.message, '[skip test]')"
+    permissions:
+      actions: read
+      contents: read
+      packages: read
+      security-events: write
     uses: ./.github/workflows/test.yml
 
   # Format code
