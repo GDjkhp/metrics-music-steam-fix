@@ -4,6 +4,11 @@ on:
   push:
     branches: [ master ]
 
+# Jobs below push commits/branches (format, indexes, main, latest), publish to GHCR and create releases
+permissions:
+  contents: write
+  packages: write
+
 jobs:
 
   # Build, test and analyze
