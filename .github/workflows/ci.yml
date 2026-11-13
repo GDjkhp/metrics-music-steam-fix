@@ -132,6 +132,11 @@ jobs:
         run: |
           docker tag $IMAGE:master $IMAGE:main
           docker push $IMAGE:main
+      - name: Tag docker image (latest) and publish to GitHub registry
+        # The forked action (see run.sh) pulls ghcr.io/<owner>/<repo>:latest
+        run: |
+          docker tag $IMAGE:master $IMAGE:latest
+          docker push $IMAGE:latest
 
   # Deploy to beta-metrics.lecoq.io
   deploy-master:
