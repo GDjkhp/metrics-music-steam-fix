@@ -26,6 +26,7 @@ jobs:
   format:
     name: Format code
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [ build-test-analyze ]
     if: always() && (needs.build-test-analyze.result == 'success' || needs.build-test-analyze.result == 'skipped')
     steps:
@@ -54,6 +55,7 @@ jobs:
   update-indexes:
     name: Publish rebuilt metrics indexes
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [ format ]
     steps:
       - name: Checkout repository
@@ -77,6 +79,7 @@ jobs:
   update-main:
     name: Rebase main on master
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [ update-indexes ]
     steps:
       - name: Checkout repository
@@ -224,6 +227,7 @@ jobs:
   update-latest:
     name: Rebase latest on master
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [ docker-release ]
     steps:
       - name: Checkout repository
@@ -282,6 +286,7 @@ jobs:
   publish-release:
     name: Publish release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [ action-latest-test, deploy-latest ]
     steps:
       - name: Checkout repository
