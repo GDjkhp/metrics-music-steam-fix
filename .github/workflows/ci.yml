@@ -108,6 +108,7 @@ jobs:
   docker-master:
     name: Publish master to GitHub registry
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     needs: [ update-indexes ]
     steps:
       - name: Checkout repository
@@ -117,7 +118,10 @@ jobs:
       - name: Login to GitHub registry
         run: echo ${{ github.token }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Build docker image
-        run: docker build -t $IMAGE:master .
+        # Reuse layers of the previously published image so unchanged dependencies are not reinstalled
+        run: |
+          docker pull $IMAGE:latest || true
+          docker build --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $IMAGE:latest -t $IMAGE:master .
       - name: Publish to GitHub registry
         run: docker push $IMAGE:master
       - name: Tag docker image (beta) and publish to GitHub registry

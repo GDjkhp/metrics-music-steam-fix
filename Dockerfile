@@ -1,15 +1,19 @@
 # Base image
 FROM node:20-bookworm-slim
 
-# Copy repository
-COPY . /metrics
+# Chrome is installed from apt below, so puppeteer must never download its own Chromium
+# (these must be set BEFORE `npm ci`, otherwise the postinstall script downloads ~150MB for nothing)
+ENV PUPPETEER_SKIP_DOWNLOAD true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_BROWSER_PATH "google-chrome-stable"
+
 WORKDIR /metrics
 
-# Setup
-RUN chmod +x /metrics/source/app/action/index.mjs \
-  # Install latest chrome dev package, fonts to support major charsets and skip chromium download on puppeteer install
+# System dependencies (does not depend on repository content, so this layer is cached)
+RUN \
+  # Install latest chrome dev package, fonts to support major charsets
   # Based on https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
-  && apt-get update \
+  apt-get update \
   && apt-get install -y wget gnupg ca-certificates libgconf-2-4 \
   && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
   && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
@@ -25,14 +29,16 @@ RUN chmod +x /metrics/source/app/action/index.mjs \
   # Install python for node-gyp
   && apt-get install -y python3 \
   # Clean apt/lists
-  && rm -rf /var/lib/apt/lists/* \
-  # Install node modules and rebuild indexes
-  && npm ci \
-  && npm run build
+  && rm -rf /var/lib/apt/lists/*
 
-# Environment variables
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-ENV PUPPETEER_BROWSER_PATH "google-chrome-stable"
+# Node modules (only rebuilt when package.json or package-lock.json change, which is the slow part)
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy repository and rebuild indexes
+COPY . /metrics
+RUN chmod +x /metrics/source/app/action/index.mjs \
+  && npm run build
 
 # Execute GitHub action
 ENTRYPOINT node /metrics/source/app/action/index.mjs
