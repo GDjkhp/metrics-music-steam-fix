@@ -53,7 +53,20 @@ jobs:
       - name: Run tests
         env:
           GIT_REF: ${{ github.head_ref || 'master' }}
-        run: docker run --rm --entrypoint="" lowlighter/metrics:$(echo $GIT_REF | sed 's/[^a-z]/-/g') npm run test-metrics
+        # The suites are independent (each test renders in its own process), so run them in parallel containers
+        run: |
+          IMAGE=lowlighter/metrics:$(echo $GIT_REF | sed 's/[^a-z]/-/g')
+          run_tests() {
+            NAME="$1"; PATTERN="$2"
+            docker run --rm --entrypoint="" $IMAGE npm run test-metrics -- -t "$PATTERN" > "tests-$NAME.log" 2>&1
+          }
+          run_tests action-classic '^GitHub Action Template : classic' & PID1=$!
+          run_tests action-others '^GitHub Action Template : (terminal|repository)' & PID2=$!
+          run_tests web '^Web instance' & PID3=$!
+          STATUS=0
+          for PID in $PID1 $PID2 $PID3; do wait $PID || STATUS=1; done
+          for LOG in tests-*.log; do echo "::group::$LOG"; cat "$LOG"; echo "::endgroup::"; done
+          exit $STATUS
 
   # Run CodeQL on branch
   analyze:

@@ -119,7 +119,7 @@ describe("GitHub Action", () =>
       if ((skip.includes(template)) || ((modes.length) && (!modes.includes("action"))))
         test.skip(name, () => null)
       else
-        test(name, async () => expect(await action.run({template, base: "", query: JSON.stringify(query), plugins_errors_fatal: true, dryrun: true, use_mocked_data: true, verify: true, retries: 1, ...input})).toBe(true), timeout)
+        test(name, async () => expect(await action.run({template, base: "", query: JSON.stringify(query), plugins_errors_fatal: true, dryrun: true, use_mocked_data: true, verify: true, retries: 1, ...input, plugin_lines_delay: 0})).toBe(true), timeout)
     }
   }))
 
@@ -133,7 +133,7 @@ describe("Web instance", () =>
       if ((skip.includes(template)) || ((modes.length) && (!modes.includes("web"))))
         test.skip(name, () => null)
       else
-        test(name, async () => expect(await web.run({template, base: 0, ...query, plugins_errors_fatal: true, verify: true, ...input})).toBe(true), timeout)
+        test(name, async () => expect(await web.run({template, base: 0, ...query, plugins_errors_fatal: true, verify: true, ...input, plugin_lines_delay: 0})).toBe(true), timeout)
     }
   }))
 
